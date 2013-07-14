@@ -24,6 +24,30 @@
 			stroke-width: 1;
 			shape-rendering: crispEdges;
 		}
+		.focus circle {
+			fill: none;	
+		}
+
+		.focus circle.y0 {
+			stroke: blue;	
+		}
+
+		.focus circle.y1 {
+			stroke: red;	
+		}
+
+		div.tooltip {
+			position: absolute;
+			text-align: center;
+			width: 60px;
+			height: 28px;
+			padding: 2px;
+			font: 12px sans-serif;
+			background: lightsteelblue;
+			border: 0px;
+			border-radius: 8px;
+			pointer-events: none;
+		}
 	</style>
 	<script type="text/javascript" src="d3/d3.js">
 	</script>
@@ -33,11 +57,12 @@
 		var margin = { top: 30, right: 20, bottom: 30, left: 50};
 		var width = 600 - margin.left - margin.right,
 			height = 270 - margin.top - margin.bottom;
-		var data = [
-			{"x": 10, "mst": 0.1, "rst": 0.01},
-			{"x": 1000, "mst": 0.2, "rst": 0.03},
-			{"x": 10000, "mst": 0.5, "rst": 0.06}
-		]; 
+		//var data = [
+		//	{"x": 10, "mst": 0.1, "rst": 0.01},
+		//	{"x": 1000, "mst": 0.2, "rst": 0.03},
+		//	{"x": 10000, "mst": 0.5, "rst": 0.06}
+		//]; 
+
 		var x  = d3.scale.ordinal().rangeBands([0, width]);
 		var y = d3.scale.linear().range([height, 0]);
 
@@ -52,15 +77,6 @@
 			.x(function(d) { return x(d.x) + x.rangeBand()/2;})
 			.y(function(d) { return y(d.rst)})
 		
-		data.forEach(function(d){
-				d.x = +d.x;	
-				d.mst = +d.mst;
-				d.rst = +d.rst;
-				});
-		x.domain(data.map(function(d){
-			return d.x;	
-			}));
-		y.domain([0, d3.max(data, function(d) { return Math.max(d.mst, d.rst)})]);
 		var svg = d3.select("body")
 		.append("svg")
 		.attr("width", width + margin.left + margin.right)
@@ -68,26 +84,64 @@
 		.append("g")
 		.attr("transform", "translate(" + margin.left + ", "+ margin.top + ")")
 
+		var div = d3.select("body").append("div")
+		.attr("class", "tooltip")
+		.style("opacity", 0);
 
-		svg.append("path")
-		.attr("d", valueline1(data));
+		d3.json('result.json', function(data){
+			data.forEach(function(d){
+				d.x = +d.x;	
+				d.mst = +d.mst;
+				d.rst = +d.rst;
+				});
+			x.domain(data.map(function(d){
+				return d.x;	
+				}));
+			y.domain([0, d3.max(data, function(d) { return Math.max(d.mst, d.rst)})]);
+		
+			svg.append("path")
+			.attr("d", valueline1(data))
 
 
-		svg.append("path")
-		.attr("class", "line")	
-		.style("stroke", "red")
-		.attr("d", valueline2(data));
+			svg.append("path")
+			.attr("class", "line")	
+			.style("stroke", "red")
+			.attr("d", valueline2(data));
 
-		svg.append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate(0, " + height + ")")
-		.call(xAxis)
-		;
+			svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0, " + height + ")")
+			.call(xAxis)
+			;
 
-		svg.append("g")
-		.attr("class", "y axis")
-		.call(yAxis);
+			svg.append("g")
+			.attr("class", "y axis")
+			.call(yAxis);
 
+			svg.selectAll("dot")
+				.data(data)
+				.enter()
+				.append("circle")
+				.attr("r", 5)
+				.attr("cx", function(d) { return x(d.x) + x.rangeBand()/2; })
+				.attr("cy", function(d) { return y(d.rst);})
+				.on("mouseover", function(d) {
+						div.transition()	
+						.duration(200)
+						.style("opacity", 9);
+						div.html(d.x + "<br/>" + d.rst)
+						.style("left", (d3.event.pageX) + "px")
+						.style("right", (d3.event.pageY) + "px")
+						console.log(d3.event.pageX);
+
+						})
+			.on("mouseout", function(d) {
+					div.transition()	
+					.duration(500)
+					.style("opacity", 0);
+					});
+
+		});	
 	</script>	
 </body>
 </html>
