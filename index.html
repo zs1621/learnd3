@@ -45,8 +45,7 @@
 			pointer-events: none;
 		}
 	</style>
-	<script type="text/javascript" src="d3/d3.js">
-	</script>
+	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 </head>
 <body>
 	<script type="text/javascript">
@@ -84,7 +83,7 @@
 		.attr("class", "tooltip")
 		.style("opacity", 0);
 
-		d3.json('result.json', function(data){
+		d3.json('http://zs1621.github.io/javascripts/result.json', function(data){
 			data.forEach(function(d){
 				d.x = +d.x;	
 				d.mst = +d.mst;
